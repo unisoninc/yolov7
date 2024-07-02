@@ -419,7 +419,7 @@ class APLoss(torch.autograd.Function):
         return g1*out_grad1, None, None
 
 
-class ComputeLoss:
+class ComputeLoss(nn.Module):
     # Compute losses
     def __init__(self, model, autobalance=False):
         super(ComputeLoss, self).__init__()
@@ -444,8 +444,9 @@ class ComputeLoss:
         #self.balance = {3: [4.0, 1.0, 0.4]}.get(det.nl, [4.0, 1.0, 0.5, 0.4, .1])  # P3-P7
         self.ssi = list(det.stride).index(16) if autobalance else 0  # stride 16 index
         self.BCEcls, self.BCEobj, self.gr, self.hyp, self.autobalance = BCEcls, BCEobj, model.gr, h, autobalance
-        for k in 'na', 'nc', 'nl', 'anchors':
+        for k in 'na', 'nc', 'nl', 'nkpt':
             setattr(self, k, getattr(det, k))
+        self.register_buffer('anchors', getattr(det, 'anchors'))
 
     def __call__(self, p, targets):  # predictions, targets, model
         device = targets.device
