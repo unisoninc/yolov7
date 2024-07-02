@@ -85,7 +85,7 @@ class QFocalLoss(nn.Module):
             return loss
 
 
-class ComputeLoss:
+class ComputeLoss(nn.Module):
     # Compute losses
     def __init__(self, model, autobalance=False, kpt_label=False):
         super(ComputeLoss, self).__init__()
@@ -110,8 +110,9 @@ class ComputeLoss:
         self.balance = {3: [4.0, 1.0, 0.4]}.get(det.nl, [4.0, 1.0, 0.25, 0.06, .02])  # P3-P7
         self.ssi = list(det.stride).index(16) if autobalance else 0  # stride 16 index
         self.BCEcls, self.BCEobj, self.gr, self.hyp, self.autobalance = BCEcls, BCEobj, model.gr, h, autobalance
-        for k in 'na', 'nc', 'nl', 'anchors', 'nkpt':
+        for k in 'na', 'nc', 'nl', 'nkpt':
             setattr(self, k, getattr(det, k))
+        self.register_buffer('anchors', getattr(det, 'anchors'))
 
     def __call__(self, p, targets):  # predictions, targets, model
         device = targets.device
